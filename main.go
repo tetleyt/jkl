@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/dersebi/golang_exp/exp/inotify"
-
 	"flag"
 	"fmt"
 	"net/http"
@@ -120,8 +118,8 @@ func main() {
 
 	// If the auto option is enabled, use inotify to watch
 	// and re-generate the site if files change.
+	// watch is os specific and has different implementations.
 	if *auto {
-		fmt.Printf("Listening for changes to %s\n", site.Src)
 		go watch(site)
 	}
 
@@ -157,40 +155,6 @@ func main() {
 	}
 
 	os.Exit(0)
-}
-
-func watch(site *Site) {
-
-	// Setup the inotify watcher
-	watcher, err := inotify.NewWatcher()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Only the events we care about
-	const flags = inotify.IN_MODIFY | inotify.IN_DELETE | inotify.IN_CREATE | inotify.IN_MOVE
-
-	// Get recursive list of directories to watch
-	for _, path := range dirs(site.Src) {
-		if err := watcher.AddWatch(path, flags); err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-
-	for {
-		select {
-		case ev := <-watcher.Event:
-			// Ignore changes to the _site directoy, hidden, or temp files		
-			if !strings.HasPrefix(ev.Name, site.Dest) && !isHiddenOrTemp(ev.Name) {
-				fmt.Println("Event:", ev.Name)
-				recompile(site)
-			}
-		case err := <-watcher.Error:
-			fmt.Println("inotify error:", err)
-		}
-	}
 }
 
 func recompile(site *Site) {
