@@ -84,7 +84,9 @@ func main() {
 	}
 
 	// Set any site variables that were overriden / provided in the cli args
-	if *baseurl != "" || site.Conf.Get("baseurl") == nil { site.Conf.Set("baseurl", *baseurl) }
+	if *baseurl != "" || site.Conf.Get("baseurl") == nil {
+		site.Conf.Set("baseurl", *baseurl)
+	}
 
 	// Generate the static website
 	if err := site.Generate(); err != nil {
@@ -107,9 +109,9 @@ func main() {
 			}
 		} else {
 			// else use the command line args
-			conf = &DeployConfig{ *s3key, *s3secret, *s3bucket }
+			conf = &DeployConfig{*s3key, *s3secret, *s3bucket}
 		}
-		
+
 		if err := site.Deploy(conf.Key, conf.Secret, conf.Bucket); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
